@@ -4,8 +4,8 @@ import example.routes.*
 import zio.http.Server
 import zio.*
 
-final case class AppServer(userRoutes: UserRoutes):
-  val allRoutes = userRoutes.routes
+final case class AppServer(userRoutes: UserRoutes, healthRoutes: HealthRoutes.type):
+  val allRoutes = userRoutes.routes ++ healthRoutes.routes
   val run =
     for
       _ <- ZIO.logInfo("starting server")

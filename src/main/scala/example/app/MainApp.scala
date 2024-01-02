@@ -15,6 +15,7 @@ object MainApp extends ZIOAppDefault {
     .provide(
       InRamUserServer.live,
       UserRoutes.live,
+      HealthRoutes.live,
       ZLayer.succeed((new ConcurrentHashMap[UserId, User]()).asScala), 
       AppServer.live
     )
