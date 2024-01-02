@@ -4,11 +4,11 @@ ThisBuild / organization := "com.wenhoujx"
 ThisBuild / organizationName := "example"
 
 val slf4jVersion = "1.7.36" // logging framework
-val zioHttpVersion = "2.0.0-RC9" // HTTP client library for ZIO
-val zioJsonVersion = "0.3.0-RC8" // JSON serialization library for ZIO
+val zioHttpVersion = "3.0.0-RC4" // HTTP client library for ZIO
+val zioJsonVersion = "0.6.2" // JSON serialization library for ZIO
 val zioLoggingVersion = "2.0.0-RC10" // logging library for ZIO
 val zioVersion =
-  "2.0.0-RC6" // Scala library for asynchronous and concurrent programming
+  "2.1-RC1" // Scala library for asynchronous and concurrent programming
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
@@ -40,7 +40,7 @@ lazy val root = project
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % zioVersion,
       "dev.zio" %% "zio-macros" % zioVersion,
-      "io.d11" %% "zhttp" % zioHttpVersion,
+      "dev.zio" %% "zio-http" % zioHttpVersion,
       "dev.zio" %% "zio-logging-slf4j" % zioLoggingVersion,
       "org.slf4j" % "slf4j-api" % slf4jVersion,
       "org.slf4j" % "slf4j-simple" % slf4jVersion

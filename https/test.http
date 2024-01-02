@@ -1,0 +1,11 @@
+POST http://localhost:8080/users/wen
+
+### 
+GET http://localhost:8080/users/
+
+
+### 
+GET http://localhost:8080/users/baa8bcec-3170-4566-a878-cd071f0eaaac
+
+### 
+DELETE http://localhost:8080/users/6f7ad0f1-5025-4bff-a5d7-02680023bfc9
