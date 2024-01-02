@@ -11,6 +11,10 @@ This is a simple ZIO 2 scala 3 rest app.
 - `zio-http` for http server
 - `zio-logging` for logging
 
+## releases
+
+Please go to [releases page](https://github.com/wenhoujx/zio-rest-app-example/releases) to go through incremental implementation of this app. Each individual release is a working app.
+
 ## run server
 
 This server use in ram hashmap as DB, no docker needed.
