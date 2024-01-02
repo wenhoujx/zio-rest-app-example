@@ -1,5 +1,7 @@
 # Scala 3 + ZIO 2 rest app example
 
+When I learn ZIO by myself, I was looking for example apps, but can't find many.
+
 This is a simple ZIO 2 scala 3 rest app.
 
 ## libraries
@@ -38,3 +40,9 @@ You can find the http request examples in the [test.http](./http/test.http) file
 - [x] add logging
 - [ ] add zio metrics
 - [ ] add dockerfile
+
+## Similar projects
+
+- [zio pet clinic](https://github.com/zio/zio-petclinic)
+- [iws-zio](https://github.com/balanka/iws-zio)
+- [tradeioZ2](https://github.com/debasishg/tradeioZ2)
