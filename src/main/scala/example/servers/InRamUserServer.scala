@@ -41,4 +41,8 @@ final case class InRamUserServer(map: Map[UserId, User]) extends UserService {
 
 object InRamUserServer {
   lazy val live = ZLayer.fromFunction(InRamUserServer.apply)
+  lazy val userExistsLive =
+    ZLayer.fromFunction((map: Map[UserId, User]) => { (id: UserId) =>
+      InRamUserServer(map).getUser(id).map(userOption => !userOption.isEmpty)
+    })
 }

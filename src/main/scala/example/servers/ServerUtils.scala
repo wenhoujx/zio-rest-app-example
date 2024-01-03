@@ -7,8 +7,11 @@ import example.errors.*
 
 object ServerUtils:
   def parseRequestBody[A: JsonDecoder](req: Request): IO[AppError, A] =
-    val body =
-      req.body.asString.mapError(t => AppError.InvalidBodyError(t.getMessage))
-    body.flatMap(b =>
-      ZIO.from(b.fromJson[A]).mapError(AppError.InvalidBodyError.apply)
-    )
+    for
+      body <- req.body.asString
+        .mapError(_.getMessage)
+        .mapError(AppError.InvalidBodyError.apply)
+      parsed <- ZIO
+        .from(body.fromJson[A])
+        .mapError(AppError.InvalidBodyError.apply)
+    yield parsed

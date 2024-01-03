@@ -9,7 +9,6 @@ import scala.jdk.CollectionConverters.*
 import zio.*
 import zio.test.*
 import zio.test.Assertion.*
-import zio.http.Header.ContentSecurityPolicy.SourcePolicyType.`form-action`
 
 object UserServerSpec extends ZIOSpecDefault:
   override def spec: Spec[TestEnvironment, Throwable] = {

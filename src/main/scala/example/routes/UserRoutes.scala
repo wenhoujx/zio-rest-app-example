@@ -8,6 +8,7 @@ import example.models.*
 import java.util.UUID
 import java.io.IOException
 import example.servers.*
+
 final case class UserRoutes(userService: UserService):
   val routes = Routes(
     Method.GET / "users" / zio.http.uuid("id") ->
