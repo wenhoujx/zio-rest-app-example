@@ -7,8 +7,7 @@ import zio.http.*
 import example.models.*
 import java.util.UUID
 import java.io.IOException
-import zio.http.Header.ContentSecurityPolicy.SourcePolicyType.`object-src`
-
+import example.servers.*
 final case class UserRoutes(userService: UserService):
   val routes = Routes(
     Method.GET / "users" / zio.http.uuid("id") ->
@@ -28,11 +27,20 @@ final case class UserRoutes(userService: UserService):
         .getAll()
         .map(_.toJson)
         .map(Response.json(_))
+    },
+    Method.PUT / "users" / zio.http.uuid("id") -> handler {
+      (id: UUID, req: Request) =>
+        {
+          for
+            updateRequest <- ServerUtils.parseRequestBody[UpdateUser](req)
+            _ <- userService.updateUser(UserId(id), updateRequest)
+          yield Response.ok
+        }
     }
   ).handleError({
     case e: IOException => Response.error(Status.InternalServerError)
     case _              => Response.error(Status.BadRequest)
   })
 
-object UserRoutes: 
-  val live = ZLayer.fromFunction(UserRoutes.apply)  
+object UserRoutes:
+  val live = ZLayer.fromFunction(UserRoutes.apply)

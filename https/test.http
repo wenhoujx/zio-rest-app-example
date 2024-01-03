@@ -9,3 +9,25 @@ GET http://localhost:8080/users/baa8bcec-3170-4566-a878-cd071f0eaaac
 
 ### 
 DELETE http://localhost:8080/users/6f7ad0f1-5025-4bff-a5d7-02680023bfc9
+
+
+### ---------create user, update, then delete 
+POST http://localhost:8080/users/wen
+
+###  update user, change the id! 
+PUT http://localhost:8080/users/6c486552-b768-4298-a63f-2e7847d29a62
+Content-Type: application/json
+
+{
+    "name": "Wenshuai Hou22"
+}
+
+
+###  get all 
+GET http://localhost:8080/users/
+
+### 
+DELETE http://localhost:8080/users/6f7ad0f1-5025-4bff-a5d7-02680023bfc9
+
+
+### end ---------create user, update, then delete 
