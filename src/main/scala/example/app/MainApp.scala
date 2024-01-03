@@ -5,9 +5,6 @@ import zio.http.*
 import example.routes.*
 import example.servers.*
 import example.models.*
-import java.util.concurrent.ConcurrentHashMap
-import scala.jdk.CollectionConverters.*
-
 
 object MainApp extends ZIOAppDefault {
   override def run = ZIO
@@ -16,7 +13,7 @@ object MainApp extends ZIOAppDefault {
       InRamUserServer.live,
       UserRoutes.live,
       HealthRoutes.live,
-      ZLayer.succeed((new ConcurrentHashMap[UserId, User]()).asScala), 
+      ZLayer.fromZIO(Ref.make(Map.empty[UserId, User])),
       AppServer.live
     )
 }

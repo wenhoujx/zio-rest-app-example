@@ -4,8 +4,6 @@ import example.services.UserService
 import example.servers.*
 import example.models.*
 
-import java.util.concurrent.ConcurrentHashMap
-import scala.jdk.CollectionConverters.*
 import zio.*
 import zio.test.*
 import zio.test.Assertion.*
@@ -61,6 +59,6 @@ object UserServerSpec extends ZIOSpecDefault:
       }
     )
   }.provide(
-    ZLayer.succeed(new ConcurrentHashMap[UserId, User]().asScala),
+    ZLayer.fromZIO(Ref.make(Map.empty[UserId, User])),
     InRamUserServer.live
   )
