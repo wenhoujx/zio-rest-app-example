@@ -37,7 +37,7 @@ You can find the http request examples in the [test.http](./http/test.http) file
 
 ## TODOs
 
-- [ ] Add tests
+- [x] Add tests
 - [ ] add db connections
 - [x] add instruction how to run this app locally
 - [x] add curl examples
