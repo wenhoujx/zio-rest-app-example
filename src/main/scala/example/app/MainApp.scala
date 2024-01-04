@@ -13,7 +13,9 @@ object MainApp extends ZIOAppDefault {
       InRamUserServer.live,
       UserRoutes.live,
       HealthRoutes.live,
-      ZLayer.fromZIO(Ref.make(Map.empty[UserId, User])),
+      layers.userDbLayer,
+      layers.marriageDbLayer,
+      MarriageServer.live,
       AppServer.live
     )
 }

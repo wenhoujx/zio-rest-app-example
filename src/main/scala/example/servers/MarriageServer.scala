@@ -9,7 +9,6 @@ import scala.annotation.newMain
 type UserExists = UserId => Task[Boolean]
 
 final case class MarriageServer(
-    userExists: UserExists,
     dbRef: Ref[Map[UserId, Marriage]]
 ) extends MarriageService:
   override def marry(userA: UserId, userB: UserId): Task[Marriage] =
@@ -64,14 +63,10 @@ final case class MarriageServer(
     yield ()
 
   override def marriageStatus(userId: UserId): Task[Option[Marriage]] =
-    userExists(userId).flatMap(
-      if _ then
-        for
-          map <- dbRef.get
-          marriageOption <- ZIO.attempt(map.get(userId))
-        yield marriageOption
-      else ZIO.fail(AppError.MissingUserError(userId))
-    )
+    for
+      map <- dbRef.get
+      marriageOption <- ZIO.attempt(map.get(userId))
+    yield marriageOption
 
 object MarriageServer:
   lazy val live = ZLayer.fromFunction(MarriageServer.apply)

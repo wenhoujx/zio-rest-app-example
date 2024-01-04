@@ -19,5 +19,7 @@ object AppError {
   case class NotMarriedError(idA: UserId, idB: UserId) extends AppError:
     override def getMessage(): String =
       s"can't divorce unmarried couple: (${idA.id}, ${idB.id})"
-
+  case class CannotDeleteMarriedUserError(id: UserId) extends AppError:
+    override def getMessage(): String =
+      s"can't delete married user, delete marriage first, ${id.id}"
 }

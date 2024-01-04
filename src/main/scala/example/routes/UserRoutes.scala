@@ -5,11 +5,16 @@ import zio.*
 import zio.json.*
 import zio.http.*
 import example.models.*
+import example.errors.*
 import java.util.UUID
 import java.io.IOException
 import example.servers.*
+import example.services.MarriageService
 
-final case class UserRoutes(userService: UserService):
+final case class UserRoutes(
+    userService: UserService,
+    marriageService: MarriageService
+):
   val routes = Routes(
     Method.GET / "users" / zio.http.uuid("id") ->
       handler { (id: UUID, _: Request) =>
@@ -21,7 +26,15 @@ final case class UserRoutes(userService: UserService):
       },
     Method.DELETE / "users" / zio.http.uuid("id") ->
       handler { (id: UUID, _: Request) =>
-        userService.deleteUser(UserId(id)).map(_ => Response.ok)
+        {
+          val userId = UserId(id)
+          for
+            status <- marriageService.marriageStatus(userId)
+            res <- status.fold(
+              ZIO.fail(AppError.CannotDeleteMarriedUserError(userId))
+            )(_ => userService.deleteUser(userId).map(_ => Response.ok))
+          yield res
+        }
       },
     Method.GET / "users" -> handler {
       userService

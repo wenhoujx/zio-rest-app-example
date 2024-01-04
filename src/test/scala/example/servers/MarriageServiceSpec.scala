@@ -18,21 +18,13 @@ object MarriageServiceSpec extends ZIOSpecDefault:
     )
   override def spec: Spec[TestEnvironment & Scope, Any] =
     suite("MarriageServiceSpec")(
-      happyPath.provide(
-        mapLayer,
-        // user always exists
-        ZLayer.succeed((userId: UserId) => ZIO.succeed(true)),
-        MarriageServer.live
-      ),
-      missingUserPath.provide(
-        mapLayer,
-        // user always missing
-        ZLayer.succeed((userId: UserId) => ZIO.succeed(false)),
+      allTests.provide(
+        layers.marriageDbLayer,
         MarriageServer.live
       )
     )
 
-  lazy val happyPath = suite("test marriage service happy path")(
+  lazy val allTests = suite("test marriage service happy path")(
     test("create marriage") {
       for
         marriageService <- ZIO.service[MarriageService]
@@ -92,7 +84,9 @@ object MarriageServiceSpec extends ZIOSpecDefault:
         _ <- marriageService.marry(id1, id2)
         m <- marriageService.marry(id1, id2)
       yield m
-      assertZIO(v.exit)(fails(isSubtype[AppError.AlreadyMarriedError](anything)))
+      assertZIO(v.exit)(
+        fails(isSubtype[AppError.AlreadyMarriedError](anything))
+      )
 
     }
   )

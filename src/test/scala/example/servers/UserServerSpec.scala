@@ -59,6 +59,6 @@ object UserServerSpec extends ZIOSpecDefault:
       }
     )
   }.provide(
-    ZLayer.fromZIO(Ref.make(Map.empty[UserId, User])),
+    layers.userDbLayer,
     InRamUserServer.live
   )

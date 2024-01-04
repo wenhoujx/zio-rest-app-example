@@ -8,6 +8,10 @@ import zio.UIO
 
 final case class InRamUserServer(mapRef: Ref[Map[UserId, User]])
     extends UserService {
+  override def exists(id: UserId): Task[Boolean] =
+    for map <- mapRef.get
+    yield map.contains(id)
+
   override def deleteUser(id: UserId): Task[Unit] =
     for
       map <- mapRef.get
