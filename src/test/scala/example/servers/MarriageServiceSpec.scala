@@ -90,14 +90,3 @@ object MarriageServiceSpec extends ZIOSpecDefault:
 
     }
   )
-
-  lazy val missingUserPath = suite("test missing users path")(
-    test("test empty marriage status for unknown user") {
-      val v = for
-        marriageService <- ZIO.service[MarriageService]
-        id1 <- UserId.random
-        res <- marriageService.marriageStatus(id1)
-      yield res
-      assertZIO(v.exit)(fails(isSubtype[AppError.MissingUserError](anything)))
-    }
-  )
