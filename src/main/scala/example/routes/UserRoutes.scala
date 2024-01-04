@@ -15,46 +15,61 @@ final case class UserRoutes(
     userService: UserService,
     marriageService: MarriageService
 ):
+
   val routes = Routes(
     Method.GET / "users" / zio.http.uuid("id") ->
       handler { (id: UUID, _: Request) =>
-        userService.getUser(UserId(id)).map(user => Response.json(user.toJson))
+        service.getUser(UserId(id)).map(user => Response.json(user.toJson))
+
       },
     Method.POST / "users" / string("name") ->
       handler { (name: String, _: Request) =>
-        userService.createUser(name).map(_.toJson).map(Response.json(_))
+        service.createUser(name).map(user => Response.json(user.toJson))
       },
     Method.DELETE / "users" / zio.http.uuid("id") ->
       handler { (id: UUID, _: Request) =>
-        {
-          val userId = UserId(id)
-          for
-            status <- marriageService.marriageStatus(userId)
-            res <- status.fold(
-              ZIO.fail(AppError.CannotDeleteMarriedUserError(userId))
-            )(_ => userService.deleteUser(userId).map(_ => Response.ok))
-          yield res
-        }
+        service.deleteUser(UserId(id)).map(_ => Response.ok)
       },
     Method.GET / "users" -> handler {
-      userService
-        .getAll()
-        .map(_.toJson)
-        .map(Response.json(_))
+      service.getAll().map(allUsers => Response.json(allUsers.toJson))
     },
     Method.PUT / "users" / zio.http.uuid("id") -> handler {
       (id: UUID, req: Request) =>
         {
           for
             updateRequest <- ServerUtils.parseRequestBody[UpdateUser](req)
-            _ <- userService.updateUser(UserId(id), updateRequest)
-          yield Response.ok
+            res <- service
+              .updateUser(UserId(id), updateRequest)
+              .map(_ => Response.ok)
+          yield res
         }
     }
   ).handleError({
     case e: IOException => Response.error(Status.InternalServerError)
     case _              => Response.error(Status.BadRequest)
   })
+
+  // we need a zio test friendly service that merge UserService and MarriageService,
+  // and it's this val implementation
+  val service: UserService = new:
+    override def createUser(name: String): Task[User] =
+      userService.createUser(name)
+    override def deleteUser(id: UserId): Task[Unit] =
+      for
+        status <- marriageService.marriageStatus(id)
+        _ <-
+          if (status.isDefined)
+            ZIO.fail(AppError.CannotDeleteMarriedUserError(id))
+          else userService.deleteUser(id)
+      yield ()
+    override def exists(id: UserId): Task[Boolean] = userService.exists(id)
+    override def getAll(): Task[List[User]] = userService.getAll()
+    override def getUser(id: UserId): Task[Option[User]] =
+      userService.getUser(id)
+    override def updateUser(
+        id: UserId,
+        updateUser: UpdateUser
+    ): Task[Option[User]] = userService.updateUser(id, updateUser)
 
 object UserRoutes:
   val live = ZLayer.fromFunction(UserRoutes.apply)
