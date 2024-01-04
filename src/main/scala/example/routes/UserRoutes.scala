@@ -19,12 +19,17 @@ final case class UserRoutes(
   val routes = Routes(
     Method.GET / "users" / zio.http.uuid("id") ->
       handler { (id: UUID, _: Request) =>
-        service.getUser(UserId(id)).map(user => Response.json(user.toJson))
-
+        service
+          .getUser(UserId(id))
+          .map(user => user.fold("{}")(_.toJson))
+          .map(Response.json(_))
       },
     Method.POST / "users" / string("name") ->
       handler { (name: String, _: Request) =>
-        service.createUser(name).map(user => Response.json(user.toJson))
+        service
+          .createUser(name)
+          .map(_.toJson)
+          .map(Response.json(_))
       },
     Method.DELETE / "users" / zio.http.uuid("id") ->
       handler { (id: UUID, _: Request) =>

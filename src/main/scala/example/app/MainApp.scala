@@ -13,6 +13,7 @@ object MainApp extends ZIOAppDefault {
       InRamUserServer.live,
       UserRoutes.live,
       HealthRoutes.live,
+      MarriageRoutes.live, 
       layers.userDbLayer,
       layers.marriageDbLayer,
       MarriageServer.live,

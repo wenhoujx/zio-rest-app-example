@@ -1,8 +1,13 @@
 POST http://localhost:8080/users/wen
 
 ### 
+POST http://localhost:8080/users/tian2
+### 
 GET http://localhost:8080/users/
 
+
+### get a single user 
+GET http://localhost:8080/users/baa8bcec-3170-4566-a878-cd071f0eaaac
 
 ### 
 GET http://localhost:8080/users/baa8bcec-3170-4566-a878-cd071f0eaaac
@@ -12,10 +17,10 @@ DELETE http://localhost:8080/users/6f7ad0f1-5025-4bff-a5d7-02680023bfc9
 
 
 ### ---------create user, update, then delete 
-POST http://localhost:8080/users/wen
+POST http://localhost:8080/users/tian
 
 ###  update user, change the id! 
-PUT http://localhost:8080/users/6c486552-b768-4298-a63f-2e7847d29a62
+PUT http://localhost:8080/users/acb7d307-2446-4e94-b9f0-f3c65739ed83
 Content-Type: application/json
 
 {
@@ -27,7 +32,16 @@ Content-Type: application/json
 GET http://localhost:8080/users/
 
 ### 
-DELETE http://localhost:8080/users/6f7ad0f1-5025-4bff-a5d7-02680023bfc9
+DELETE http://localhost:8080/users/acb7d307-2446-4e94-b9f0-f3c65739ed83
 
 
 ### end ---------create user, update, then delete 
+### marry 
+PUT http://localhost:8080/marriages/marry 
+Content-Type: application/json
+
+{"userA": "f0100cf2-4a08-47e3-ab66-9e1b9ba5725f", "userB": "56cca22c-5175-4ad6-8b36-2334358ba0a4"}
+
+### get marriage status 
+GET http://localhost:8080/marriages/status/f0100cf2-4a08-47e3-ab66-9e1b9ba5725f
+Content-Type: application/json

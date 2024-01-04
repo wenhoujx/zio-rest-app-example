@@ -10,6 +10,7 @@ import example.errors.AppError
 import example.models.MarriageRequest.DivorceRequest
 import java.util.UUID
 import example.models.UserId
+import example.models.Marriage
 
 final case class MarriageRoutes(
     userService: UserService,
@@ -19,48 +20,61 @@ final case class MarriageRoutes(
     Method.PUT / "marriages" / "marry" -> handler((req: Request) => {
       for
         marryRequest <- Utils.parseRequestBody[MarryRequest](req)
-        aExists <- userService.exists(marryRequest.userA)
-        bExists <- userService.exists(marryRequest.userB)
-
-        marriage <-
-          if (aExists && bExists)
-            marriageService.marry(marryRequest.userA, marryRequest.userB)
-          else if (aExists)
-            ZIO.fail(AppError.MissingUserError(marryRequest.userB))
-          else
-            ZIO.fail(AppError.MissingUserError(marryRequest.userA))
-      yield Response.json(marriage.toJson)
+        m <- service.marry(marryRequest.userA, marryRequest.userB)
+      yield Response.json(m.toJson)
     }),
     Method.PUT / "marriages" / "divorce" -> handler((req: Request) => {
       for
         divorceRequest <- Utils.parseRequestBody[DivorceRequest](req)
-        aExists <- userService.exists(divorceRequest.userA)
-        bExists <- userService.exists(divorceRequest.userB)
-
-        divorce <-
-          if (aExists && bExists)
-            marriageService.divorce(divorceRequest.userA, divorceRequest.userB)
-          else if (aExists)
-            ZIO.fail(AppError.MissingUserError(divorceRequest.userB))
-          else
-            ZIO.fail(AppError.MissingUserError(divorceRequest.userA))
+        d <- service
+          .divorce(divorceRequest.userA, divorceRequest.userB)
+          .map(_ => Response.ok)
       yield Response.ok
     }),
     Method.GET / "marriages" / "status" / zio.http.uuid("uId") -> handler {
       (uId: UUID, req: Request) =>
-        {
-          val userId = UserId(uId)
-          for
-            userExists <- userService.exists(userId)
-            status <-
-              if (userExists)
-                marriageService.marriageStatus(userId)
-              else
-                ZIO.fail(AppError.MissingUserError(userId))
-          yield Response.json(status.toJson)
-        }
+        service
+          .marriageStatus(UserId(uId))
+          .map(status => status.fold("{}")(_.toJson))
+          .map(Response.json(_))
     }
-  )
+  ).handleError({ case _ => Response.badRequest })
+
+  val service: MarriageService = new:
+    override def marry(userA: UserId, userB: UserId): Task[Marriage] =
+      for
+        aExists <- userService.exists(userA)
+        bExists <- userService.exists(userB)
+        res <-
+          if (aExists && bExists)
+            marriageService.marry(userA, userB)
+          else if (!aExists)
+            ZIO.fail(AppError.MissingUserError(userA))
+          else ZIO.fail(AppError.MissingUserError(userB))
+      yield res
+
+    override def divorce(userA: UserId, userB: UserId): Task[Unit] =
+      for
+        aExists <- userService.exists(userA)
+        bExists <- userService.exists(userB)
+        res <-
+          if (aExists && bExists)
+            marriageService.divorce(userA, userB)
+          else if (!aExists)
+            ZIO.fail(AppError.MissingUserError(userA))
+          else ZIO.fail(AppError.MissingUserError(userB))
+      yield ()
+    override def marriageStatus(userId: UserId): Task[Option[Marriage]] =
+      for
+        userExists <- userService.exists(userId)
+        status <-
+          if (userExists)
+            marriageService.marriageStatus(userId)
+          else
+            ZIO.fail(AppError.MissingUserError(userId))
+      yield status
 
 object MarriageRoutes:
-  lazy val live = ZLayer.fromFunction(MarriageRoutes.apply)
+  lazy val live
+      : ZLayer[UserService & MarriageService, Nothing, MarriageRoutes] =
+    ZLayer.fromFunction(MarriageRoutes.apply)
