@@ -50,9 +50,6 @@ final case class InRamUserServer(mapRef: Ref[Map[UserId, User]])
 }
 
 object InRamUserServer {
-  lazy val live = ZLayer.fromFunction(InRamUserServer.apply)
-  lazy val userExistsLive =
-    ZLayer.fromFunction((map: Ref[Map[UserId, User]]) => { (id: UserId) =>
-      InRamUserServer(map).getUser(id).map(userOption => !userOption.isEmpty)
-    })
+  lazy val live: ZLayer[Ref[Map[UserId, User]], Nothing, UserService] =
+    ZLayer.fromFunction(InRamUserServer.apply)
 }

@@ -6,8 +6,6 @@ import example.errors.*
 import zio.*
 import scala.annotation.newMain
 
-type UserExists = UserId => Task[Boolean]
-
 final case class MarriageServer(
     dbRef: Ref[Map[UserId, Marriage]]
 ) extends MarriageService:
@@ -69,4 +67,5 @@ final case class MarriageServer(
     yield marriageOption
 
 object MarriageServer:
-  lazy val live = ZLayer.fromFunction(MarriageServer.apply)
+  lazy val live: ZLayer[Ref[Map[UserId, Marriage]], Nothing, MarriageService] =
+    ZLayer.fromFunction(MarriageServer.apply)
