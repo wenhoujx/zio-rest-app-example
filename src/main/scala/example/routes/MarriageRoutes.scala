@@ -35,7 +35,7 @@ final case class MarriageRoutes(
       (uId: UUID, req: Request) =>
         service
           .marriageStatus(UserId(uId))
-          .map(status => status.fold("{}")(_.toJson))
+          .map(_.toJson)
           .map(Response.json(_))
     }
   ).handleError({ case _ => Response.badRequest })

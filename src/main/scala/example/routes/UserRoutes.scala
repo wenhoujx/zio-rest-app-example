@@ -21,7 +21,7 @@ final case class UserRoutes(
       handler { (id: UUID, _: Request) =>
         service
           .getUser(UserId(id))
-          .map(user => user.fold("{}")(_.toJson))
+          .map(_.toJson)
           .map(Response.json(_))
       },
     Method.POST / "users" / string("name") ->
