@@ -16,6 +16,11 @@ object AppError {
       extends AppError:
     override def getMessage(): String =
       s"already married (${id.id}, ${marriedTo.id})"
+  case class NotMarriedToEachOtherError(i1: UserId, i2: UserId)
+      extends AppError:
+    override def getMessage(): String =
+      s"users can't divorce, they aren't married to each other, ${i1}, ${i2}"
+
   case class NotMarriedError(idA: UserId, idB: UserId) extends AppError:
     override def getMessage(): String =
       s"can't divorce unmarried couple: (${idA.id}, ${idB.id})"

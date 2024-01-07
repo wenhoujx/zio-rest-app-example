@@ -10,61 +10,37 @@ final case class MarriageServer(
     dbRef: Ref[Map[UserId, Marriage]]
 ) extends MarriageService:
   override def marry(userA: UserId, userB: UserId): Task[Marriage] =
-    for
-      marriedA <- marriageStatus(userA)
-      marriedB <- marriageStatus(userB)
-      m <-
-        if (!marriedA.isEmpty) then
-          ZIO.fail(
-            AppError.AlreadyMarriedError(marriedA.get.userA, marriedA.get.userB)
+    marriageStatus(userA).zip(marriageStatus(userB)).flatMap {
+      case (Some(ma), _) =>
+        ZIO.fail(AppError.AlreadyMarriedError(ma.userA, ma.userB))
+      case (_, Some(mb)) =>
+        ZIO.fail(AppError.AlreadyMarriedError(mb.userA, mb.userB))
+      case (None, None) => {
+        // none married, marry them now.
+        Marriage
+          .make(userA, userB)
+          .flatMap(m =>
+            dbRef
+              .updateAndGet(db => db ++ Map((userA, m), (userB, m)))
+              .map(_ => m)
           )
-        else if (!marriedB.isEmpty) then
-          ZIO.fail(
-            AppError.AlreadyMarriedError(marriedB.get.userA, marriedB.get.userB)
-          )
-        else
-          for
-            newM <- Marriage.make(userA, userB)
-            map <- dbRef.get
-            _ <- dbRef.set(
-              map ++ Map(userA -> newM, userB -> newM)
-            )
-          yield newM
-    yield m
+      }
+    }
 
   override def divorce(userA: UserId, userB: UserId): Task[Unit] =
-    for
-      marriedA <- marriageStatus(userA)
-      marriedB <- marriageStatus(userB)
-      _ <-
-        if (
-          marriedA
-            .filter(m => {
-              (m.userA == userA && m.userB == userB) ||
-              (m.userA == userB && m.userB == userA)
-            })
-            .isEmpty
-        ) then ZIO.fail(AppError.NotMarriedError(userA, userB))
-        else if (
-          marriedB
-            .filter(m => {
-              (m.userA == userA && m.userB == userB) ||
-              (m.userA == userB && m.userB == userA)
-            })
-            .isEmpty
-        ) then ZIO.fail(AppError.NotMarriedError(userB, userA))
+    marriageStatus(userA).zip(marriageStatus(userB)).flatMap {
+      case (None, _) | (_, None) =>
+        ZIO.fail(AppError.NotMarriedError(userA, userB))
+      case (Some(ma), Some(mb)) => {
+        if (!Set(ma.userA, ma.userB).equals(Set(mb.userA, mb.userB)))
+          ZIO.fail(AppError.NotMarriedToEachOtherError(userA, userB))
         else
-          for
-            map <- dbRef.get
-            _ <- dbRef.set(map.removed(userA).removed(userB))
-          yield ()
-    yield ()
+          dbRef.update(m => m.removedAll(List(userA, userB)))
+      }
+    }
 
   override def marriageStatus(userId: UserId): Task[Option[Marriage]] =
-    for
-      map <- dbRef.get
-      marriageOption <- ZIO.attempt(map.get(userId))
-    yield marriageOption
+    dbRef.get.map(_.get(userId))
 
 object MarriageServer:
   lazy val live: ZLayer[Ref[Map[UserId, Marriage]], Nothing, MarriageService] =
