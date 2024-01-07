@@ -42,37 +42,28 @@ final case class MarriageRoutes(
 
   val service: MarriageService = new:
     override def marry(userA: UserId, userB: UserId): Task[Marriage] =
-      for
-        aExists <- userService.exists(userA)
-        bExists <- userService.exists(userB)
-        res <-
-          if (aExists && bExists)
-            marriageService.marry(userA, userB)
-          else if (!aExists)
-            ZIO.fail(AppError.MissingUserError(userA))
-          else ZIO.fail(AppError.MissingUserError(userB))
-      yield res
+      userService.exists(userA).zip(userService.exists(userB)).flatMap {
+        case (false, _)   => ZIO.fail(AppError.MissingUserError(userA))
+        case (_, false)   => ZIO.fail(AppError.MissingUserError(userB))
+        case (true, true) => marriageService.marry(userA, userB)
+      }
 
     override def divorce(userA: UserId, userB: UserId): Task[Unit] =
-      for
-        aExists <- userService.exists(userA)
-        bExists <- userService.exists(userB)
-        res <-
-          if (aExists && bExists)
-            marriageService.divorce(userA, userB)
-          else if (!aExists)
-            ZIO.fail(AppError.MissingUserError(userA))
-          else ZIO.fail(AppError.MissingUserError(userB))
-      yield ()
+      userService.exists(userA).zip(userService.exists(userB)).flatMap {
+        case (false, _)   => ZIO.fail(AppError.MissingUserError(userA))
+        case (_, false)   => ZIO.fail(AppError.MissingUserError(userB))
+        case (true, true) => marriageService.divorce(userA, userB)
+      }
+
     override def marriageStatus(userId: UserId): Task[Option[Marriage]] =
-      for
-        userExists <- userService.exists(userId)
-        status <-
-          if (userExists)
+      userService
+        .exists(userId)
+        .flatMap(exist =>
+          if (exist)
             marriageService.marriageStatus(userId)
           else
             ZIO.fail(AppError.MissingUserError(userId))
-      yield status
+        )
 
 object MarriageRoutes:
   lazy val live
